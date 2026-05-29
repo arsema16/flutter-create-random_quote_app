@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../providers/quote_provider.dart';
 
 class ActionButtons extends StatelessWidget {
@@ -17,6 +19,19 @@ class ActionButtons extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   provider.getNewQuote();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.refresh, color: Colors.white, size: 20),
+                          SizedBox(width: 12),
+                          Text('New quote loaded!'),
+                        ],
+                      ),
+                      duration: Duration(seconds: 1),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -85,11 +100,14 @@ class ActionButtons extends StatelessWidget {
     final quote = provider.currentQuote;
     final text = '"${quote.text}" — ${quote.author}';
     
+    // Copy to clipboard
+    Clipboard.setData(ClipboardData(text: text));
+    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
+            Icon(Icons.check_circle, color: Colors.green, size: 20),
             SizedBox(width: 12),
             Text('Quote copied to clipboard!'),
           ],
@@ -102,20 +120,12 @@ class ActionButtons extends StatelessWidget {
 
   void _shareQuote(BuildContext context, QuoteProvider provider) {
     final quote = provider.currentQuote;
-    final text = '"${quote.text}" — ${quote.author}';
+    final text = '"${quote.text}" — ${quote.author}\n\nShared from Random Quote Generator App';
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.share, color: Colors.blue),
-            SizedBox(width: 12),
-            Text('Sharing quote...'),
-          ],
-        ),
-        duration: Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
+    // Share the quote using share_plus package
+    Share.share(
+      text,
+      subject: 'Inspirational Quote',
     );
   }
 }
